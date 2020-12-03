@@ -57,6 +57,8 @@ y = y.reshape(600, 2)
 y = y.T
 print(y.shape)
 
+## This function parses the front of the 1D input array into the 3
+## weight matrices
 def get_w(x):
     w1 = x[0:10]
     w2 = x[10:35]
@@ -68,6 +70,8 @@ def get_w(x):
 
     return w1, w2, w3
 
+## This function parses the back of the 1d input array into the 3
+## bias vectors
 def get_b(x):
     b1 = x[45, 50]
     b2 = x[50, 55]
@@ -75,12 +79,54 @@ def get_b(x):
 
     return b1.T, b2.T, b3.T
 
+## This function applies the sigma function to all elements of an
+## input vector
+def sigma_f(x):
+    for i in range(x.size):
+        x[i] = 1/(1 + np.exp(-x[i]))
+    return x
+
+## This is the neural net, with 2 intermediate layers of 5 nodes each
+## and a 2 node output layer
+def f(x, w1, w2, w3, b1, b2, b3):
+    ## Layer 1          (2x1 --> 5x1)
+    xk = sigma_f(w1.dot(x) + b1)
+
+    ## Layer 2          (5x1 --> 5x1)
+    xk = sigma_f(w2.dot(xk) + b2)
+
+    ## Layer 3, output  (5x1 --> 2x1)
+    xk = sigma_f(w3.dot(xk) + b3)
+
+    return xk
+    
+## This function compares the output of the neural net to the
+## correct outputs for the data. This is the function we want to
+## minimize
 def obj_f(x, blue, red, y):
     w1, w2, w3 = get_w(x)
     b1, b2, b3 = get_b(x)
 
+    tot = 0
+
     for i in range(blue[0].size):
+        xk = np.array([[blue[0][i]], [blue[1][i]]])
+        Yk = f(xk, w1, w2, w3, b1, b2, b3)
+        xt = np.array([[red[0][i]], [red[1][i]]])
+        Yt = f(xt, w1, w2, w3, b1, b2, b3)
+
+        yk_cor = np.array([[y[0][i]], [y[1][i]]])
+        yt_cor = np.array([[y[0][i + 300]], [y[1][i + 300]]])
+
+        tot = tot + np.linalg.norm(Yk - yk_cor)**2
+        tot = tot + np.linalg.norm(Yt - yt_cor)**2
         
+    return tot/600
+
+## Now, I'm going to try to use simulated annealing to minimize
+## the objective function
+
+
 
 
 plt.show()

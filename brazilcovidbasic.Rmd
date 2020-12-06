@@ -1,0 +1,22 @@
+---
+title: "DSCI320"
+output: html_document
+---
+
+
+
+```{r}
+brazil<-read.csv("covidbrazil.csv",header = TRUE,sep=";")
+```
+
+
+
+
+```{r}
+
+
+ggplot(data=brazil,aes(Epiweek,totalcases,color=region))+geom_point()
+
+
+```
+

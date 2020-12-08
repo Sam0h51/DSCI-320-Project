@@ -36,7 +36,7 @@ x <- c("d1","d2","d3", "d4", "d5", "d6","current")
 colnames(df) <- x
 j = 1
 for ( i in 7:length(partial_dat$newdeaths)){
-  temp <- c(brazil$totalcases[i-6], brazil$totalcases[i-5], brazil$totalcases[i-4], brazil$totalcases[i-3], brazil$totalcases[i-2], brazil$totalcases[i-1], brazil$totalcases[i])
+  temp <- c(brazil$newcases[i-6], brazil$newcases[i-5], brazil$newcases[i-4], brazil$newcases[i-3], brazil$newcases[i-2], brazil$newcases[i-1], brazil$newcases[i])
   
   df[j, ] <- temp
   j = j+1
@@ -45,4 +45,13 @@ for ( i in 7:length(partial_dat$newdeaths)){
 df
 ```
 
+
+
+
+```{r}
+
+
+ggplot(df,aes(current,d2))+geom_point()
+
+```
 

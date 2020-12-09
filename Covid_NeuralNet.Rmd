@@ -46,12 +46,66 @@ df
 ```
 
 
+```{r}
+# Pre-processing
+
+data = df
+samplesize = 0.60 * nrow(data)
+
+
+# Normalize data
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x)))
+}
+
+data$current <- normalize(data$current)
+data$d1 <- normalize(data$d1)
+data$d2 <- normalize(data$d2)
+data$d3 <- normalize(data$d3)
+data$d4 <- normalize(data$d4)
+data$d5 <- normalize(data$d5)
+data$d6 <- normalize(data$d6)
+
+# Create Training and test sets
+set.seed(26)
+index = sample(seq_len( nrow(data)), size = samplesize )
+datatrain = data[ index, ]
+datatest = data[ -index, ]
+```
+
+# Train
+```{r}
+nnCOVID = neuralnet(current ~ d1 + d2  , data = datatrain,hidden = 2 , linear.output = TRUE, rep = 5)
+```
+
+# Visualize
+```{r}
+plot(nnCOVID, rep = "best")
+```
+
+# Test
+```{r}
+# Obtain Predictions from test data set
+predict_datatest = compute(nnCOVID, datatest)
+  
+# Returns number of max column in each row 
+predict_datatest$net.result
+
+results <- data.frame(actual = datatest$current, prediction = predict_datatest$net.result)
+results
+```
+
+
+
 
 
 ```{r}
+prd = results$prediction * (max(df$current) - min(df$current)) + min(df$current)
+act = results$actual * (max(df$current) - min(df$current)) + min(df$current)
+cmpr = data.frame(prd,act)
+cmpr
 
 
-ggplot(df,aes(current,d2))+geom_point()
 
 ```
 

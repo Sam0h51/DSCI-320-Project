@@ -1,0 +1,121 @@
+---
+title: "BC_NeuralNet"
+author: "Jonathan Olavarria"
+date: "12/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(neuralnet)
+library(reshape2)
+library(ggplot2)
+library(nnet)
+library(caret)
+```
+
+```{r}
+# Read Data
+bcdat <- read.csv("breastcancerdat.csv", header = TRUE)
+# Sample size 
+samplesize = 0.60 * nrow(bcdat)
+
+
+# Normalize function
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x)))
+}
+
+# Normalize Data
+bcdat$radius_mean <- normalize(bcdat$radius_mean)
+bcdat$texture_mean <- normalize(bcdat$texture_mean)
+bcdat$perimeter_mean <- normalize(bcdat$perimeter_mean)
+bcdat$area_mean <- normalize(bcdat$area_mean)
+bcdat$smoothness_mean <- normalize(bcdat$smoothness_mean)
+bcdat$compactness_mean <- normalize(bcdat$compactness_mean)
+bcdat$concavity_mean<- normalize(bcdat$concavity_mean)
+bcdat$concave.points_mean<- normalize(bcdat$concave.points_mean)
+bcdat$symmetry_mean<- normalize(bcdat$symmetry_mean)
+bcdat$fractal_dimension_mean  <- normalize(bcdat$fractal_dimension_mean)
+
+tempdata <- bcdat[,2:12]
+
+# Create Indicator Variables
+labels <- class.ind(as.factor(tempdata$diagnosis))
+
+# Format Data
+tempdata <- cbind(tempdata, labels)
+data <- tempdata[,2:13]
+data
+```
+
+
+```{r}
+# Create training and test data sets using random sampling
+set.seed(26)
+index = sample(seq_len( nrow(data)), size = samplesize )
+datatrain = data[ index, ]
+datatest = data[ -index, ]
+
+
+# Fitting and Training Neural Network
+set.seed(26)
+nnBC = neuralnet(B + M ~ radius_mean + texture_mean + perimeter_mean + area_mean +smoothness_mean+compactness_mean
+                   + concavity_mean + concave.points_mean + symmetry_mean + fractal_dimension_mean,
+                   datatrain, hidden = 6 , linear.output = T )
+```
+
+```{r}
+# Visualize Neural Network
+# blue = biases, black = weights
+plot(nnBC,rep = "best")
+
+```
+
+
+```{r}
+# Obtain Predictions from test data set
+predict_datatest = compute(nnBC, datatest)
+  
+# Returns number of max column in each row 
+pr.nn <- max.col(predict_datatest$net.result)
+```
+
+```{r}
+yhat <- predict_datatest$net.result
+
+yhat = data.frame("yhat2"=ifelse(max.col(yhat[ ,1:2]) == 1, "B",
+                       "M"))
+
+ytest <- as.matrix(bcdat[-index,2])
+cm = confusionMatrix(as.factor(ytest), yhat$yhat)
+cm
+```
+
+
+
+```{r}
+# ggplot(data=bcdat,aes(radius_mean,smoothness_mean,color= diagnosis))+geom_point()
+```
+
+```{r}
+# ggplot(data=bcdat,aes(texture_mean,perimeter_mean,color= diagnosis))+geom_point()
+```
+
+```{r}
+# ggplot(data=bcdat,aes(symmetry_mean,fractal_dimension_mean,color= diagnosis))+geom_point()
+```
+
+```{r}
+# ggplot(data=bcdat,aes(area_mean,concavity_mean,color= diagnosis))+geom_point()
+```
+
+
+
+
+
+

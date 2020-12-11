@@ -51,31 +51,31 @@ class NeuralNet (object):
         self.delta2 = self.D3.dot(self.W3.T.dot(self.out_del))
         self.delta1 = self.D2.dot(self.W2.T.dot(self.delta2))
 
-        if(self.counter==0):
-            self.W1Update = self.delta1.dot(X.T)
-            self.W2Update = self.delta2.dot(self.z2.T)
-            self.W3Update = self.out_del.dot(self.z3.T)
-            self.B1Update = self.delta1
-            self.B2Update = self.delta2
-            self.B3Update = self.out_del
-        else:
-            self.W1Update += self.delta1.dot(X.T)
-            self.W2Update += self.delta2.dot(self.z2.T)
-            self.W3Update += self.out_del.dot(self.z3.T)
-            self.B1Update += self.delta1
-            self.B2Update += self.delta2
-            self.B3Update += self.out_del
-
-        self.counter += 1
-
-        if(self.counter == 10):
-            self.W1 += self.W1Update/10
-            self.W2 += self.W2Update/10
-            self.W3 += self.W3Update/10
-            self.B1 += self.B1Update/10
-            self.B2 += self.B2Update/10
-            self.B3 += self.B3Update/10
-            self.counter = 0
+##        if(self.counter==0):
+##            self.W1Update = self.delta1.dot(X.T)
+##            self.W2Update = self.delta2.dot(self.z2.T)
+##            self.W3Update = self.out_del.dot(self.z3.T)
+##            self.B1Update = self.delta1
+##            self.B2Update = self.delta2
+##            self.B3Update = self.out_del
+##        else:
+##            self.W1Update += self.delta1.dot(X.T)
+##            self.W2Update += self.delta2.dot(self.z2.T)
+##            self.W3Update += self.out_del.dot(self.z3.T)
+##            self.B1Update += self.delta1
+##            self.B2Update += self.delta2
+##            self.B3Update += self.out_del
+##
+##        self.counter += 1
+##
+##        if(self.counter == 10):
+        self.W1 += self.delta1.dot(X.T)
+        self.W2 += self.delta2.dot(self.z2.T)
+        self.W3 += self.out_del.dot(self.z3.T)
+        self.B1 += self.delta1
+        self.B2 += self.delta2
+        self.B3 += self.out_del
+        self.counter = 0
 
     def train_network(self, X, Y):
         output = self.forward_prop(X)

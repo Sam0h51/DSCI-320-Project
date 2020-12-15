@@ -67,6 +67,12 @@ set.seed(26)
 nnBC = neuralnet(B + M ~ radius_mean + texture_mean + perimeter_mean + area_mean +smoothness_mean+compactness_mean
                    + concavity_mean + concave.points_mean + symmetry_mean + fractal_dimension_mean,
                    datatrain, hidden = 6 , linear.output = T )
+
+nnBC2 = neuralnet(B + M ~ radius_mean + texture_mean + perimeter_mean + area_mean +smoothness_mean+compactness_mean
+                   + concavity_mean + concave.points_mean + symmetry_mean + fractal_dimension_mean,
+                   datatrain, hidden = c(15,7) , linear.output = T)
+
+# 6,4
 ```
 
 ```{r}
@@ -77,33 +83,48 @@ plot(nnBC,rep = "best")
 ```
 
 
+
+```{r}
+plot(nnBC2,rep = "best")
+```
+
 ```{r}
 # Obtain Predictions from test data set
 predict_datatest = compute(nnBC, datatest)
-  
+predict_datatest2 = compute(nnBC2, datatest) 
 # Returns number of max column in each row 
 pr.nn <- max.col(predict_datatest$net.result)
+pr.nn2 <- max.col(predict_datatest2$net.result)
 ```
 
 ```{r}
 yhat <- predict_datatest$net.result
+yhat2 <- predict_datatest2$net.result
 
 yhat = data.frame("yhat2"=ifelse(max.col(yhat[ ,1:2]) == 1, "B",
                        "M"))
 
+yhat2 = data.frame("yhat2"=ifelse(max.col(yhat2[ ,1:2]) == 1, "B",
+                       "M"))
+
 ytest <- as.matrix(bcdat[-index,2])
+ytest2 <- as.matrix(bcdat[-index,2])
 cm = confusionMatrix(as.factor(ytest), yhat$yhat)
+cm2 = confusionMatrix(as.factor(ytest2), yhat2$yhat2)
 cm
 ```
 
+```{r}
+cm2
+```
 
 
 ```{r}
-# ggplot(data=bcdat,aes(radius_mean,smoothness_mean,color= diagnosis))+geom_point()
+ggplot(data=bcdat,aes(radius_mean,smoothness_mean,color= diagnosis))+geom_point() + ggtitle("Radius and Smoothness")
 ```
 
 ```{r}
-# ggplot(data=bcdat,aes(texture_mean,perimeter_mean,color= diagnosis))+geom_point()
+ ggplot(data=bcdat,aes(texture_mean,perimeter_mean,color= diagnosis))+geom_point()
 ```
 
 ```{r}
@@ -115,6 +136,9 @@ cm
 ```
 
 
+```{r}
+datatest
+```
 
 
 

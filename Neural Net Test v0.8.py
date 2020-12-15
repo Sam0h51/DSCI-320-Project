@@ -24,8 +24,6 @@ class Neural_Network():
         self.B3 = rn.randn(L3, 1)
         self.BL = rn.randn(osize, 1)
 
-        print('W2: ', self.W2, '\nW3', self.W3, '\nWL', self.WL, '\nB2', self.B2, '\nB3', self.B3, '\nBL', self.BL)
-
     ## Sigma activation function
     def sigma(self, z):
         return 1/(1 + np.exp(-z))
@@ -178,10 +176,10 @@ class Data_Ingest():
         return self.split_conX, self.split_conY
 
 ## Function to average testing set data
-def average_error(X, y):
+def average_error(X, y, NN):
     error = 0
     for i in range(y.size):
-        error += (NeuNet.forward_prop(X[i].reshape(10, 1)) - y[i])**2
+        error += (NN.forward_prop(X[i].reshape(10, 1)) - y[i])**2
     return error/y.size
 
 def produce_confusion_matrix(X, y, NN):
@@ -199,89 +197,144 @@ def produce_confusion_matrix(X, y, NN):
             elif(output[i] == 1):
                 con_matrix[1][0] += 1
             else:
-                print("ERROR SCREAM!")
+                print("ERROR!")
         elif(y[i] == 1):
             if(output[i] == 0):
                 con_matrix[0][1] += 1
             elif(output[i] == 1):
                 con_matrix[1][1] += 1
             else:
-                print("ERROR SCREAM!")
+                print("ERROR!")
 
     return con_matrix
 
-
-## Create Data Structures
-NeuNet = Neural_Network(10, 15, 7, 1, 0.1)
-Dat = Data_Ingest('DesiredColumns.csv', 10, True)
-##Dat2 = Data_Ingest('TestingData.csv', 10)
-
-## Setup for Training
-E = 10000
-##Dat.generate_consistent_set(E)
-##X, y = Dat.normalize_consistent_data()
-##Xt, yt = Dat2.normalize_data()
-##Xk, yk = Dat.normalize_data()
-
-Xs, ys = Dat.normalize_data()
-X, y, Xt, yt = Dat.get_split_consistent(E)
-Xk, yk = Dat.get_split_XandY()
-
-
-u = np.array(())
-v = np.array(())
-w = np.array(())
-k = 0
-
-def test_error(X, y):
+## Computes total error and total misclassifications for a given data set
+def test_error(X, y, NN):
     a, b = X.shape
     outs = np.array(())
     for i in range(a):
-        outs = np.append(outs, NeuNet.forward_prop(X[i].reshape(10, 1)))
+        outs = np.append(outs, NN.forward_prop(X[i].reshape(10, 1)))
     error = outs - y
     classifications = np.round(outs, 0)
     misclassifications = classifications - y
 
     return np.linalg.norm(error), np.linalg.norm(misclassifications)**2
 
-def print_out(X, y):
+## A function to print the outputs vs expected outputs of a given neural net
+def print_out(X, y, NN):
     a, b = X.shape
     print('Output\t\tExpected')
     for i in range(a):
-        print(NeuNet.forward_prop(X[i].reshape(10, 1)), '\t', y[i])
+        print(NN.forward_prop(X[i].reshape(10, 1)), '\t', y[i])
+
+## Create Data Structures
+NeuNet1 = Neural_Network(10, 15, 7, 1, 1)
+NeuNet2 = Neural_Network(10, 15, 7, 1, 0.1)
+NeuNet3 = Neural_Network(10, 15, 7, 1, 0.01)
+Dat = Data_Ingest('DesiredColumns.csv', 10, True)
+
+## Setup for Training
+E = 10000
+Xs, ys = Dat.normalize_data()
+X, y, Xt, yt = Dat.get_split_consistent(E)
+Xk, yk = Dat.get_split_XandY()
+
+## Arrays to store the single error(v) and average error(w) at each k(u)
+u1 = np.array(())
+v1 = np.array(())
+w1 = np.array(())
+
+u2 = np.array(())
+v2 = np.array(())
+w2 = np.array(())
+
+u3 = np.array(())
+v3 = np.array(())
+w3 = np.array(())
+
+k = 0
             
 ## Training the Neural Net
 for i in range(E):
-    NeuNet.train_network(X[i].reshape(10, 1), y[i])
-    u = np.append(u, k)
-    v = np.append(v, (NeuNet.forward_prop(X[i].reshape(10, 1)) - y[i])**2)
-    w = np.append(w, average_error(Xt, yt))
+    NeuNet1.train_network(X[i].reshape(10, 1), y[i])
+    NeuNet2.train_network(X[i].reshape(10, 1), y[i])
+    NeuNet3.train_network(X[i].reshape(10, 1), y[i])
+    
+    u1 = np.append(u1, k)
+    v1 = np.append(v1, (NeuNet1.forward_prop(X[i].reshape(10, 1)) - y[i])**2)
+    w1 = np.append(w1, average_error(Xt, yt, NeuNet1))
+
+    u2 = np.append(u2, k)
+    v2 = np.append(v2, (NeuNet2.forward_prop(X[i].reshape(10, 1)) - y[i])**2)
+    w2 = np.append(w2, average_error(Xt, yt, NeuNet2))
+
+    u3 = np.append(u3, k)
+    v3 = np.append(v3, (NeuNet3.forward_prop(X[i].reshape(10, 1)) - y[i])**2)
+    w3 = np.append(w3, average_error(Xt, yt, NeuNet3))
+    
     k += 1
 
     if(i%100 == 0):
         print('Input:\n')
         print(X[i])
         print('Output\t\tExpected Output')
-        print(NeuNet.forward_prop(X[i].reshape(10, 1)), '\t', y[i])
-        print(test_error(Xt, yt))
-        print(test_error(Xk, yk))
+        print('NN1: ', NeuNet1.forward_prop(X[i].reshape(10, 1)), '\t', y[i])
+        print('NN2: ', NeuNet2.forward_prop(X[i].reshape(10, 1)), '\t', y[i])
+        print('NN3: ', NeuNet3.forward_prop(X[i].reshape(10, 1)), '\t', y[i])
+        print(test_error(Xt, yt, NeuNet1))
+        print(test_error(Xt, yt, NeuNet2))
+        print(test_error(Xt, yt, NeuNet3))
     
 
 print('Input:\n')
 print(X[E-1])
 print('Output\t\tExpected Output')
-print(NeuNet.forward_prop(X[i].reshape(10, 1)), '\t', y[i])
-print(test_error(Xt, yt))
+print(NeuNet1.forward_prop(X[i].reshape(10, 1)), '\t', y[i])
+print(test_error(Xt, yt, NeuNet1))
 print('\n\nOUTPUT=S:')
-print_out(Xk, yk)
-print('\n\nConfusion Matrix:')
-print(produce_confusion_matrix(Xk, yk, NeuNet))
-print(produce_confusion_matrix(Xt, yt, NeuNet))
-print(produce_confusion_matrix(Xs, ys, NeuNet))
+print_out(Xk, yk, NeuNet1)
+print('\n\nNN1 Confusion Matrix:')
+print(produce_confusion_matrix(Xk, yk, NeuNet1))
+print(produce_confusion_matrix(Xt, yt, NeuNet1))
+print(produce_confusion_matrix(Xs, ys, NeuNet1))
 
-plt.plot(u, v, color='red')
-plt.plot(u, w, color='green')
-plt.show()
+print('\n\nNN2 Confusion Matrix:')
+print(produce_confusion_matrix(Xk, yk, NeuNet2))
+print(produce_confusion_matrix(Xt, yt, NeuNet2))
+print(produce_confusion_matrix(Xs, ys, NeuNet2))
+
+print('\n\nNN3 Confusion Matrix:')
+print(produce_confusion_matrix(Xk, yk, NeuNet3))
+print(produce_confusion_matrix(Xt, yt, NeuNet3))
+print(produce_confusion_matrix(Xs, ys, NeuNet3))
+
+fig, axs = plt.subplots(3)
+
+axs[0].set_xlabel('k')
+axs[0].set_ylabel('Error')
+axs[0].set_title('Single point error and Average Squared Error for Neural Net with mu=1')
+
+axs[1].set_xlabel('k')
+axs[1].set_ylabel('Error')
+axs[1].set_title('Single point error and Average Squared Error for Neural Net with mu=0.1')
+
+axs[2].set_xlabel('k')
+axs[2].set_ylabel('Error')
+axs[2].set_title('Single point error and Average Squared Error for Neural Net with mu=0.01')
+
+
+
+axs[0].plot(u1, v1, color='red')
+axs[0].plot(u1, w1, color='green')
+
+axs[1].plot(u2, v2, color='red')
+axs[1].plot(u2, w2, color='green')
+
+axs[2].plot(u3, v3, color='red')
+axs[2].plot(u3, w3, color='green')
+
+
+fig.show()
 
 
 
